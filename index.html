@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Camera</title>
+</head>
+
+<body>
+
+<h2>📸 測試拍照</h2>
+
+<video id="camera" autoplay playsinline width="300"></video>
+<br><br>
+
+<button id="btn">拍照</button>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<p id="result"></p>
+
+<script>
+console.log("✅ JS 已載入");
+
+// ✅ 不用 onclick，改用 addEventListener（避免作用域問題）
+document.getElementById("btn").addEventListener("click", takePhoto);
+
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        document.getElementById("camera").srcObject = stream;
+        console.log("✅ 相機成功");
+    } catch (e) {
+        console.error(e);
+        alert("❌ 相機失敗");
+    }
+}
+
+startCamera();
+
+function takePhoto() {
+    console.log("📸 takePhoto OK");
+
+    let video = document.getElementById("camera");
+    let canvas = document.getElementById("canvas");
+
+    canvas.width = video.videoWidth || 300;
+    canvas.height = video.videoHeight || 200;
+
+    let ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(blob => {
+        console.log("blob:", blob);
+
+        let fd = new FormData();
+        fd.append("image", blob, "photo.png");
+
+        fetch("upload.php", {
+            method: "POST",
+            body: fd
+        })
+        .then(res => res.text())
+        .then(text => {
+            console.log("回傳:", text);
+            document.getElementById("result").innerText = text;
+        });
+
+    });
+}
+</script>
+
+</body>
+</html>

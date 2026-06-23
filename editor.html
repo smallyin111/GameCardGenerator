@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>卡牌生成</title>
+</head>
+
+<body>
+
+<h2>🎴 卡牌生成</h2>
+
+<input id="code" placeholder="輸入8位代碼">
+<button onclick="loadImage()">載入圖片</button>
+
+<br><br>
+
+<!-- ✅ 卡牌名稱 -->
+<input id="cardName" placeholder="輸入卡牌名稱">
+
+<br><br>
+
+<select id="skills">
+  <option value="MorningAssembly">早會</option>
+  <option value="Assembly">週會</option>
+  <option value="HouGapAa">我真係好急呀</option>
+  <option value="CherryTuckshop">Cherry's Tuckshop</option>
+  <option value="Check">儀容檢查</option>
+  <option value="Rain">黃色暴雨警告</option>
+</select>
+
+<br><br>
+
+
+<!-- ✅ 卡牌描述 -->
+<textarea id="cardDesc" placeholder="輸入卡牌描述" rows="4" cols="30"></textarea>
+
+<br><br>
+
+<!-- ✅ 卡框選擇 -->
+<select id="frame">
+  <option value="YuGiOu">遊戲王</option>
+  <option value="Pokemon">Pokemon</option>
+  <option value="KamenRider">Kamen Rider</option>
+</select>
+
+<br><br>
+
+<canvas id="cardCanvas" width="400" height="600"></canvas>
+
+<br><br>
+<button id="genBtn">生成卡牌</button>
+<button onclick="uploadCard()">上傳卡牌</button>
+<script>
+const skillsConfig = {
+	MorningAssembly: {
+		name: "早會",
+		cost: 2,
+		element: "fire",
+		damage: 800,
+		desc: "敵方學生獲得疲累、頭暈、缺水、\n飢餓等debuff，中暑機率大幅增加"
+	},
+	Assembly: {
+		name: "週會",
+		cost: 4,
+		element: "none",
+		damage: 245,
+		desc: "放學時間由於不可抗力因素影響，\n今日又遲咗少少完，\n敵方學生延遲至5：30放學"
+	},
+	HouGapAa: {
+		name: "我真係好急呀",
+		cost: 3,
+		element: "water",
+		damage: null,
+		desc: "見你真係就嚟頂唔順，\n阿sir決定放你去廁所，\n自身立刻獲得去廁所機會一次"
+	},
+	CherryTuckshop: {
+		name: "Cherry's Tuckshop",
+		cost: null,
+		element: null,
+		damage: null,
+		desc: "同學，上課辛苦了!\n自身體力值及體力回復至上限\n(插隊及代買者不得享受此增益)"
+	},
+	Check: {
+		name: "儀容檢查",
+		cost: null,
+		element: null,
+		damage: null,
+		desc: "發動後的下一個早會全場學生\n必定觸發儀容檢查事件，\n請提前剪指甲和剪頭髮"
+	},
+	Rain: {
+		name: "黃色暴雨警告",
+		cost: 4,
+		element: "water",
+		damage: 540,
+		desc: "冇人知點解世界末日仲要返學，\n敵方學生獲得疲累debuff"
+	}
+}
+
+const frameConfig = {
+    YuGiOu: {
+        nameX: 40,
+        nameY: 70,
+		nameColour: "black",
+		nameFont: "bold 24px Arial",
+        descX: 40,
+        descY: 470,
+		descW: 320,
+		descH: 20,
+		descColour: "black",
+		descFont: "14px Arial",
+        imgX: 50,
+        imgY: 100,
+        imgW: 300,
+        imgH: 200
+    },
+
+    Pokemon: {
+        nameX: 80,
+        nameY: 50,
+		nameColour: "black",
+		nameFont: "bold 30px Arial",
+		sElementX: 40,
+		sElementY: 400,
+		sNameX: 130,
+		sNameY: 400,
+		sNameFont: "bold 16px Arial",
+		damageX: 300,
+		damageY: 400,
+		damageFont: "bold 16px Arial",
+        descX: 40,
+        descY: 430,
+		descW: 320,
+		descH: 20,
+		descColour: "white",
+		descFont: "14px Arial",
+        imgX: 60,
+        imgY: 120,
+        imgW: 280,
+        imgH: 220
+    },
+
+    KamenRider: {
+        nameX: 200,
+        nameY: 465,
+		nameColour: "white",
+		nameFont: "bold 30px Arial",
+        descX: 70,
+        descY: 464,
+		descW: 320,
+		descH: 20,
+		descColour: "white",
+		descFont: "bold 16px Arial",
+        kamenriderX: 70,
+        kamenriderY: 505,
+		kamenriderCoulour: "White",
+		kamenriderFont: "bold 24px Arial",
+        imgX: 40,
+        imgY: 90,
+        imgW: 320,
+        imgH: 240
+    }
+};
+let img = new Image();
+let frameImg = new Image();
+let elementIcon = new Image();
+
+const canvas = document.getElementById("cardCanvas");
+const ctx = canvas.getContext("2d");
+
+
+// ✅ 即時更新（關鍵）
+document.getElementById("cardName").addEventListener("input", renderCard);
+document.getElementById("cardDesc").addEventListener("input", renderCard);
+document.getElementById("frame").addEventListener("change", renderCard);
+document.getElementById("skills").addEventListener("change", renderCard);
+
+
+function drawMultilineText(ctx, text, x, y, maxWidth, lineHeight) {
+    let words = text.split('\n'); // 先按 Enter 分行
+
+    for (let i = 0; i < words.length; i++) {
+        let line = words[i];
+        ctx.fillText(line, x, y + (i * lineHeight));
+    }
+}
+
+function drawBoarderedMultilineText(ctx, text, x, y, maxWidth, lineHeight) {
+    let lines = text.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+
+        // ✅ 先畫白色邊框
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 4;
+        ctx.strokeText(line, x, y + i * lineHeight);
+
+        // ✅ 再填黑色（或你原本顏色）
+        ctx.fillText(line, x, y + i * lineHeight);
+    }
+}
+
+// ✅ 載入圖片
+function loadImage() {
+    let code = document.getElementById("code").value;
+
+    img.src = "get_image.php?code=" + encodeURIComponent(code);
+
+    img.onload = () => {
+		console.log("✅ 使用者圖片載入成功");
+    
+		// ✅ 強制重新畫一次
+		setTimeout(renderCard, 50);
+	};
+
+
+    img.onerror = () => {
+        alert("❌ 找不到圖片");
+    };
+}
+
+// ✅ ⭐ 核心：統一渲染
+function renderCard() {
+    let frame = document.getElementById("frame").value;
+	let config = frameConfig[frame];
+    let name = document.getElementById("cardName").value;
+    let desc = document.getElementById("cardDesc").value;
+	let pokeConfig = skillsConfig[document.getElementById("skills").value];
+
+    let frameImg = new Image();
+
+    frameImg.onload = () => {
+
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		ctx.fillStyle = "#222";
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+		// ✅ 圖片區（自行微調座標）
+		ctx.save();
+
+		let x = 50;
+		let y = 80;
+		let w = 300;
+		let h = 250;
+
+		// ✅ 移到中心
+		ctx.translate(x + w / 2, y + h / 2);
+
+		// ✅ 旋轉 90°
+		ctx.rotate(Math.PI / 2);
+
+		// ✅ ⭐ 正確：用「原圖比例」
+		let scale = Math.max(w / img.height, h / img.width);
+
+		// ✅ 計算顯示尺寸（保持比例）
+		let drawW = img.width * scale;
+		let drawH = img.height * scale;
+
+		// ✅ 居中畫（重點）
+		ctx.drawImage(
+			img,
+			-drawW / 2,
+			-drawH / 2,
+			drawW,
+			drawH
+		);
+
+		ctx.restore();
+
+		// ✅ 卡框
+		ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+
+		// ✅ 標題
+		ctx.fillStyle = config.nameColour;
+		ctx.font = config.nameFont;
+		ctx.fillText(name, config.nameX, config.nameY);
+
+		// ✅ 描述
+		ctx.fillStyle = config.descColour;
+		ctx.font = config.descFont;
+		// ✅ 支援換行
+		drawMultilineText(ctx, desc, config.descX, config.descY, config.descW, config.descH);
+		if (frame == "KamenRider") {
+			ctx.fillStyle = config.kamenriderColour;
+			ctx.font = config.kamenriderFont;
+			ctx.fillText("KAMENRIDER", config.kamenriderX, config.kamenriderY);
+		} else if (frame == "Pokemon") {
+			ctx.font = config.descFont;
+			ctx.fillStyle = "black"
+			drawBoarderedMultilineText(ctx, pokeConfig.desc, config.descX, config.descY, config.descW, config.descH);
+			
+			ctx.font = config.sNameFont;
+			// 邊框
+			ctx.strokeStyle = "#ffffff";
+			ctx.lineWidth = 4;
+			ctx.strokeText(pokeConfig.name, config.sNameX, config.sNameY);
+			// 內填
+			ctx.fillStyle = "#000000";
+			ctx.fillText(pokeConfig.name, config.sNameX, config.sNameY);
+
+			if (pokeConfig.damage != null) {
+				ctx.strokeStyle = "#ffffff";
+				ctx.lineWidth = 4;
+				ctx.strokeText(pokeConfig.damage, config.damageX, config.damageY);
+				ctx.fillStyle = "#000000";
+				ctx.fillText(pokeConfig.damage, config.damageX, config.damageY);
+			}
+
+			// Draw element sign
+			if (pokeConfig.element != null) {
+				elementIcon.src = "frames/" + pokeConfig.element + ".png";
+			}
+		}
+	};
+
+    frameImg.onerror = () => {
+        console.error("❌ 卡框載入失敗:", frame);
+    };
+
+	elementIcon.onload = () => {
+		for (let i = 0; i < pokeConfig.cost; i++) {
+			ctx.drawImage(
+				elementIcon,
+				pokeConfig.sElementX + 10*i,
+				pokeConfig.sElementY,
+				24,
+				24
+			);
+			console.log("Logo Drawn");
+		}
+	}
+
+    frameImg.src = "frames/" + frame + ".png";
+}
+function uploadCard() {
+    let canvas = document.getElementById("cardCanvas");
+    let code = document.getElementById("code").value; // ✅ 取得8位code
+
+    if (!code) {
+        alert("請先輸入代碼");
+        return;
+    }
+
+    canvas.toBlob(blob => {
+        if (!blob) {
+            alert("❌ 無法生成圖片");
+            return;
+        }
+
+        let formData = new FormData();
+        formData.append("card", blob, "card.png");
+
+        // ✅ ⭐ 把 code 傳去 PHP
+        formData.append("code", code);
+
+        fetch("save_card.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.text())
+        .then(msg => {
+            console.log(msg);
+            alert(msg);
+        });
+
+    }, "image/png");
+}
+
+
+</script>
+
+</body>
+</html>
