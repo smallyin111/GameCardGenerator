@@ -327,8 +327,12 @@ function renderCard() {
 				24,
 				24
 			);
-			console.log("Logo Drawn");
+			console.log(ctx);
 		}
+	};
+
+	elementIcon.onerror = () => {
+		console.error("Element Icon Loading Error!");
 	}
 
     frameImg.src = "frames/" + frame + ".png";
