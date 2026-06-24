@@ -120,13 +120,13 @@ const frameConfig = {
 		nameColour: "black",
 		nameFont: "bold 30px Arial",
 		sElementX: 40,
-		sElementY: 400,
-		sNameX: 130,
+		sElementY: 380,
+		sNameX: 150,
 		sNameY: 400,
 		sNameFont: "bold 16px Arial",
 		damageX: 300,
 		damageY: 400,
-		damageFont: "bold 16px Arial",
+		damageFont: "bold 18px Arial",
         descX: 40,
         descY: 430,
 		descW: 320,
@@ -322,8 +322,8 @@ function renderCard() {
 		for (let i = 0; i < pokeConfig.cost; i++) {
 			ctx.drawImage(
 				elementIcon,
-				pokeConfig.sElementX + 10*i,
-				pokeConfig.sElementY,
+				config.sElementX + 25*i,
+				config.sElementY,
 				24,
 				24
 			);
