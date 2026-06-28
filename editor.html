@@ -94,7 +94,11 @@ const skillsConfig = {
 		damage: 540,
 		desc: "冇人知點解世界末日仲要返學，\n敵方學生獲得疲累debuff"
 	}
-}
+};
+
+const YuGiOuSkills = {
+	
+};
 
 const frameConfig = {
     YuGiOu: {
@@ -244,14 +248,7 @@ function renderCard() {
 		let w = 300;
 		let h = 250;
 
-		// ✅ 移到中心
-		ctx.translate(x + w / 2, y + h / 2);
-
-		// ✅ 旋轉 90°
-		ctx.rotate(Math.PI / 2);
-
-		// ✅ ⭐ 正確：用「原圖比例」
-		let scale = Math.max(w / img.height, h / img.width);
+		let scale = Math.max(w / img.height, canvas.width / img.width);
 
 		// ✅ 計算顯示尺寸（保持比例）
 		let drawW = img.width * scale;
@@ -260,10 +257,7 @@ function renderCard() {
 		// ✅ 居中畫（重點）
 		ctx.drawImage(
 			img,
-			-drawW / 2,
-			-drawH / 2,
-			drawW,
-			drawH
+			0, 0, canvas.width, canvas.height
 		);
 
 		ctx.restore();
