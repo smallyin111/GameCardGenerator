@@ -19,6 +19,7 @@
 
 <br><br>
 
+<p>技能: </p>
 <select id="skills">
   <option value="MorningAssembly">早會</option>
   <option value="Assembly">週會</option>
@@ -26,6 +27,8 @@
   <option value="CherryTuckshop">Cherry's Tuckshop</option>
   <option value="Check">儀容檢查</option>
   <option value="Rain">黃色暴雨警告</option>
+  <option value="Homework">AI趕功課</option>
+  <option value="Exam">考試</option>
 </select>
 
 <br><br>
@@ -45,7 +48,7 @@
 
 <br><br>
 
-<canvas id="cardCanvas" width="400" height="600"></canvas>
+<canvas id="cardCanvas" width="1480" height="1050"></canvas>
 
 <br><br>
 <button id="genBtn">生成卡牌</button>
@@ -93,78 +96,91 @@ const skillsConfig = {
 		element: "water",
 		damage: 540,
 		desc: "冇人知點解世界末日仲要返學，\n敵方學生獲得疲累debuff"
+	},
+	Homework: {
+		name: "AI趕功課",
+		cost: 4,
+		element: "thunder",
+		damage: null,
+		desc: "分秒必爭！發動AI 技趕起功課。"
+	},
+	Exam: {
+		name: "考試",
+		cost: 3,
+		element: "none",
+		damage: null,
+		desc: "面對考試，你並不孤單。\n全場學生獲得亢奮及專注增益。"
 	}
 };
 
 const YuGiOuSkills = {
-	
+	MorningAssembly: "［炎族／效果］\n敵方在早會中長談戰略，\n但礙於炎熱天氣下站崗，\n中暑機率大幅增加，疲累感UP。",
+	Assembly: "［魔法使族／效果］\n由於不可抗力魔法因素影響，\n今日週會又遲咗少少完，\n敵方學生延遲至5：30放學。",
+	HouGapAa: "［水族／效果］\n人有三急？阿sir決定放行，\n自身立刻獲得去洗手間機會一次。",
+	CherryTuckshop: "［天使族／效果］\n同學，上課辛苦了!\n自身體力值及體力回復至上限。\n(插隊及代買者不得享受此增益)",
+	Check: "［惡魔族／效果］\n發動後的下一個早會\n敵方必定觸發儀容檢查事件，\n請提前剪指甲和剪頭髮。",
+	Rain: "［水族／效果］\n沒人知道暴雨下仍要上學的原因，\n敵方獲得疲累debuff。",
+	Homework: "［電子界族／效果］\n分秒必爭！\n發動AI 技趕起功課。",
+	Exam: "［戰士族／效果］\n面對考試，你並不孤單。\n全場學生獲得亢奮及專注增益。"
 };
 
 const frameConfig = {
     YuGiOu: {
-        nameX: 40,
-        nameY: 70,
+        nameX: 80,
+        nameY: 100,
 		nameColour: "black",
-		nameFont: "bold 24px Arial",
-        descX: 40,
-        descY: 470,
+		nameFont: "bold 36px Arial",
+        descX: 80,
+        descY: 690,
 		descW: 320,
-		descH: 20,
+		descH: 24,
 		descColour: "black",
-		descFont: "14px Arial",
-        imgX: 50,
-        imgY: 100,
-        imgW: 300,
-        imgH: 200
+		descFont: "bold 22px Arial"
     },
 
     Pokemon: {
-        nameX: 80,
-        nameY: 50,
+        nameX: 140,
+        nameY: 70,
 		nameColour: "black",
-		nameFont: "bold 30px Arial",
-		sElementX: 40,
-		sElementY: 380,
-		sNameX: 150,
-		sNameY: 400,
-		sNameFont: "bold 16px Arial",
-		damageX: 300,
-		damageY: 400,
-		damageFont: "bold 18px Arial",
-        descX: 40,
-        descY: 430,
+		nameFont: "bold 36px Arial",
+		sElementX: 50,
+		sElementY: 574,
+		sNameX: 220,
+		sNameY: 600,
+		sNameFont: "bold 24px Arial",
+		damageX: 500,
+		damageY: 600,
+		damageFont: "bold 26px Arial",
+        descX: 50,
+        descY: 640,
 		descW: 320,
-		descH: 20,
+		descH: 28,
 		descColour: "white",
-		descFont: "14px Arial",
-        imgX: 60,
-        imgY: 120,
-        imgW: 280,
-        imgH: 220
+		descFont: "24px Arial"
     },
 
     KamenRider: {
-        nameX: 200,
-        nameY: 465,
+        nameX: 280,
+        nameY: 676,
 		nameColour: "white",
-		nameFont: "bold 30px Arial",
-        descX: 70,
-        descY: 464,
+		nameFont: "bold 40px Arial",
+        descX: 120,
+        descY: 676,
 		descW: 320,
 		descH: 20,
 		descColour: "white",
-		descFont: "bold 16px Arial",
-        kamenriderX: 70,
-        kamenriderY: 505,
+		descFont: "bold 20px Arial",
+        kamenriderX: 120,
+        kamenriderY: 738,
 		kamenriderCoulour: "White",
-		kamenriderFont: "bold 24px Arial",
-        imgX: 40,
-        imgY: 90,
-        imgW: 320,
-        imgH: 240
+		kamenriderFont: "bold 30px Arial"
     }
 };
+
+const cardX = 630;
+const cardY = 874;
 let img = new Image();
+let back = new Image();
 let frameImg = new Image();
 let elementIcon = new Image();
 
@@ -235,10 +251,10 @@ function renderCard() {
 
     frameImg.onload = () => {
 
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.clearRect(0, 0, cardX, cardY);
 
 		ctx.fillStyle = "#222";
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctx.fillRect(0, 0, cardX, cardY);
 
 		// ✅ 圖片區（自行微調座標）
 		ctx.save();
@@ -248,22 +264,16 @@ function renderCard() {
 		let w = 300;
 		let h = 250;
 
-		let scale = Math.max(w / img.height, canvas.width / img.width);
-
-		// ✅ 計算顯示尺寸（保持比例）
-		let drawW = img.width * scale;
-		let drawH = img.height * scale;
-
 		// ✅ 居中畫（重點）
 		ctx.drawImage(
 			img,
-			0, 0, canvas.width, canvas.height
+			0, 0, cardX, cardY
 		);
 
 		ctx.restore();
 
 		// ✅ 卡框
-		ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+		ctx.drawImage(frameImg, 0, 0, cardX, cardY);
 
 		// ✅ 標題
 		ctx.fillStyle = config.nameColour;
@@ -274,6 +284,9 @@ function renderCard() {
 		ctx.fillStyle = config.descColour;
 		ctx.font = config.descFont;
 		// ✅ 支援換行
+		if (frame == "YuGiOu") {
+			desc = YuGiOuSkills[document.getElementById("skills").value];
+		}
 		drawMultilineText(ctx, desc, config.descX, config.descY, config.descW, config.descH);
 		if (frame == "KamenRider") {
 			ctx.fillStyle = config.kamenriderColour;
@@ -316,10 +329,10 @@ function renderCard() {
 		for (let i = 0; i < pokeConfig.cost; i++) {
 			ctx.drawImage(
 				elementIcon,
-				config.sElementX + 25*i,
+				config.sElementX + 32*i,
 				config.sElementY,
-				24,
-				24
+				30,
+				30
 			);
 			console.log(ctx);
 		}
@@ -327,9 +340,18 @@ function renderCard() {
 
 	elementIcon.onerror = () => {
 		console.error("Element Icon Loading Error!");
-	}
+	};
+
+	back.onload = () => {
+		ctx.drawImage(back, cardX+1, 0, cardX, cardY);
+	};
+
+	back.onerror = () => {
+		console.error("Element Icon Loading Error!");
+	};
 
     frameImg.src = "frames/" + frame + ".png";
+	back.src = "frames/back/" + frame + ".png";
 }
 function uploadCard() {
     let canvas = document.getElementById("cardCanvas");
