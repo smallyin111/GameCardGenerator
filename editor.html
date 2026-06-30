@@ -33,12 +33,6 @@
 
 <br><br>
 
-
-<!-- ✅ 卡牌描述 -->
-<textarea id="cardDesc" placeholder="輸入卡牌描述" rows="4" cols="30"></textarea>
-
-<br><br>
-
 <!-- ✅ 卡框選擇 -->
 <select id="frame">
   <option value="YuGiOu">遊戲王</option>
@@ -60,42 +54,42 @@ const skillsConfig = {
 		cost: 2,
 		element: "fire",
 		damage: 800,
-		desc: "敵方學生獲得疲累、頭暈、缺水、\n飢餓等debuff，中暑機率大幅增加"
+		desc: "敵方在早會中長談戰略，但礙於炎熱天氣下站崗，\n中暑機率大幅增加，疲累感UP。"
 	},
 	Assembly: {
 		name: "週會",
 		cost: 4,
 		element: "none",
 		damage: 245,
-		desc: "放學時間由於不可抗力因素影響，\n今日又遲咗少少完，\n敵方學生延遲至5：30放學"
+		desc: "由於不可抗力魔法因素影響，\n今日週會又遲咗少少完，\n敵方學生延遲至5：30放學。"
 	},
 	HouGapAa: {
 		name: "我真係好急呀",
 		cost: 3,
 		element: "water",
 		damage: null,
-		desc: "見你真係就嚟頂唔順，\n阿sir決定放你去廁所，\n自身立刻獲得去廁所機會一次"
+		desc: "人有三急？阿sir決定放行，\n自身立刻獲得去洗手間機會一次。"
 	},
 	CherryTuckshop: {
 		name: "Cherry's Tuckshop",
 		cost: null,
 		element: null,
 		damage: null,
-		desc: "同學，上課辛苦了!\n自身體力值及體力回復至上限\n(插隊及代買者不得享受此增益)"
+		desc: "同學，上課辛苦了!\n自身體力值及體力回復至上限。\n(插隊及代買者不得享受此增益)"
 	},
 	Check: {
 		name: "儀容檢查",
 		cost: null,
 		element: null,
 		damage: null,
-		desc: "發動後的下一個早會全場學生\n必定觸發儀容檢查事件，\n請提前剪指甲和剪頭髮"
+		desc: "發動後的下一個早會敵方必定觸發儀容檢查事件，\n請提前剪指甲和剪頭髮。"
 	},
 	Rain: {
 		name: "黃色暴雨警告",
 		cost: 4,
 		element: "water",
 		damage: 540,
-		desc: "冇人知點解世界末日仲要返學，\n敵方學生獲得疲累debuff"
+		desc: "沒人知道暴雨下仍要上學的原因，\n敵方獲得疲累debuff。"
 	},
 	Homework: {
 		name: "AI趕功課",
@@ -190,7 +184,6 @@ const ctx = canvas.getContext("2d");
 
 // ✅ 即時更新（關鍵）
 document.getElementById("cardName").addEventListener("input", renderCard);
-document.getElementById("cardDesc").addEventListener("input", renderCard);
 document.getElementById("frame").addEventListener("change", renderCard);
 document.getElementById("skills").addEventListener("change", renderCard);
 
@@ -244,7 +237,6 @@ function renderCard() {
     let frame = document.getElementById("frame").value;
 	let config = frameConfig[frame];
     let name = document.getElementById("cardName").value;
-    let desc = document.getElementById("cardDesc").value;
 	let pokeConfig = skillsConfig[document.getElementById("skills").value];
 
     let frameImg = new Image();
@@ -286,8 +278,11 @@ function renderCard() {
 		// ✅ 支援換行
 		if (frame == "YuGiOu") {
 			desc = YuGiOuSkills[document.getElementById("skills").value];
+			drawMultilineText(ctx, desc, config.descX, config.descY, config.descW, config.descH);
+		} else if (frame == "KamenRider") {
+			desc = "KAMENRIDER";
+			drawMultilineText(ctx, desc, config.descX, config.descY, config.descW, config.descH);
 		}
-		drawMultilineText(ctx, desc, config.descX, config.descY, config.descW, config.descH);
 		if (frame == "KamenRider") {
 			ctx.fillStyle = config.kamenriderColour;
 			ctx.font = config.kamenriderFont;
